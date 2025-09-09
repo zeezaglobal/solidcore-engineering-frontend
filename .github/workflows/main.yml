@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy to VPS with Debug
 
 on:
   push:
@@ -9,61 +9,34 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Debug SSH Key
+        run: |
+          echo "Checking key length"
+          echo "${{ secrets.VPS_KEY }}" | wc -l
+          echo "First 2 lines of key:"
+          echo "${{ secrets.VPS_KEY }}" | head -n 2
+          echo "Last 2 lines of key:"
+          echo "${{ secrets.VPS_KEY }}" | tail -n 2
+
+      - name: Test SSH connectivity
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@147.93.114.66 "echo SSH connection successful"
+      
       - name: SSH Deploy
         uses: appleboy/ssh-action@v1
         with:
           host: 147.93.114.66
           username: root
           port: 22
-          key: |
-            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
+          key: ${{ secrets.VPS_KEY }}
           script: |
+            echo "SSH connection verified"
             cd /var/www/solidcore-engineering-frontend
             git reset --hard
             git pull origin main
